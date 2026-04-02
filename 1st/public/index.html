@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чат</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+        * {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+
+        }
+
+        input, button {
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            background-color: transparent;
+
+            &:hover {
+                background-color: #ccc;
+            }
+
+            &:active {
+                background-color: #aaa;
+            }
+        }
+
+        #app {
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            padding: 24px;
+        }
+
+        #username-form {
+            width: 480px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #username-input {
+            width: 50%;
+        }
+
+        #chat {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 480px;
+        }
+
+        #chat-form {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #chat-input {
+            flex-grow: 1;
+        }
+
+        #messages {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .message {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 4px 8px;
+            list-style: none;
+            display: flex;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <form id="username-form">
+            <label for="username-input">Чтобы присоединиться к беседе, введите ваше имя</label>
+            <input type="text" id="username-input">
+            <button type="submit">Присоединиться к беседе</button>
+        </form>
+        <div id="chat" style="display: none;">
+            <h3>Чат</h3>
+            <ul id="messages"></ul>
+            <form id="chat-form">
+                <input type="text" autocomplete='off' id="chat-input" placeholder="Введите сообщение">
+                <button type='submit'>Отправить</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        const usernameForm = document.getElementById('username-form');
+        const usernameInput = document.getElementById('username-input');
+
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+
+        const messages = document.getElementById('messages');
+
+        usernameForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (!usernameInput.value) return;
+            const username = usernameInput.value;
+            socket.emit('username', username);
+            usernameForm.style.display = 'none';
+            chat.style.display = 'flex';
+        });
+
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (!chatInput.value) return;
+            const message = chatInput.value;
+            socket.emit('message', message);
+            chatInput.value = '';
+        });
+
+        socket.on('message', (username, message) => {
+            const item = document.createElement('li');
+            item.classList.add('message');
+            const userName = document.createElement('strong');
+            userName.textContent = username;
+            item.appendChild(userName);
+
+            const messageText = document.createElement('span');
+            messageText.textContent = message;
+            item.appendChild(messageText);
+
+            messages.appendChild(item);
+            window.scrollTo(0, document.body.scrollHeight);
+        })
+    </script>
+</body>
+</html>
